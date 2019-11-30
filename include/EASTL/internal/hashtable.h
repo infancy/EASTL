@@ -116,6 +116,8 @@ namespace eastl
 	#ifdef EA_COMPILER_MSVC_2015
 		EA_DISABLE_VC_WARNING(5026) // disable warning: "move constructor was implicitly defined as deleted"
 	#endif
+
+	// 当 的时候，缓存哈希值可以获得更快的查询速度
 		template <typename Value>
 		struct hash_node<Value, true>
 		{
@@ -379,7 +381,7 @@ namespace eastl
 	/// the ability to read it. This ht_distance is used only for
 	/// optimization and so the code will merely work better with
 	/// forward iterators that input iterators.
-	///
+	///	
 	template <typename Iterator>
 	inline typename eastl::iterator_traits<Iterator>::difference_type
 	distance_fw_impl(Iterator /*first*/, Iterator /*last*/, EASTL_ITC_NS::input_iterator_tag)
@@ -408,6 +410,7 @@ namespace eastl
 	/// Implements the algorithm for conversion of a number in the range of
 	/// [0, SIZE_T_MAX] to the range of [0, BucketCount).
 	///
+	//  H2 的默认实现
 	struct mod_range_hashing
 	{
 		uint32_t operator()(size_t r, uint32_t n) const
@@ -423,6 +426,7 @@ namespace eastl
 	/// h1 and h2. So instead we'll just use a tag to tell class template
 	/// hashtable to do that composition.
 	///
+	//  为了避免对 H1 和 H2 的复制，只使用一个 tag 告知 hashtable 怎么怎么样
 	struct default_ranged_hash{ };
 
 
@@ -484,6 +488,7 @@ namespace eastl
 	// on type of child class) for them.
 	///////////////////////////////////////////////////////////////////////
 
+	// rehash_base 和 hash_code_base 作为 hashtable 的基类分别负责 重散列 和 计算哈希值
 
 	/// rehash_base
 	///
@@ -530,6 +535,10 @@ namespace eastl
 	/// We also put the key extraction and equality comparison function 
 	/// objects here, for convenience.
 	///
+	//  封装两个不完全正交的问题
+	//  1.只使用 ranged hash func 的话无需 hash codes，因而需要一个 dummy type 来占位
+	//  2.如果使用了 ranged hash func 的话缓存 hash codes 就没意义了
+
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, 
 			  typename H1, typename H2, typename H, bool bCacheHashCode>
 	struct hash_code_base;
@@ -540,7 +549,9 @@ namespace eastl
 	/// Specialization: ranged hash function, no caching hash codes. 
 	/// H1 and H2 are provided but ignored. We define a dummy hash code type.
 	///
-	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2, typename H>
+	//  使用 H，忽略 H1 和 H2
+	template <typename Key, typename Value, typename ExtractKey, typename Equal, 
+		typename H1, typename H2, typename H>
 	struct hash_code_base<Key, Value, ExtractKey, Equal, H1, H2, H, false>
 	{
 	protected:
@@ -616,6 +627,7 @@ namespace eastl
 	/// This combination is meaningless, so we provide only a declaration
 	/// and no definition.
 	///
+	//  使用 ranged hash func 再缓存 hash codes 没意义，因而只写个声明
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2, typename H>
 	struct hash_code_base<Key, Value, ExtractKey, Equal, H1, H2, H, true>;
 
@@ -627,6 +639,7 @@ namespace eastl
 	/// no caching of hash codes. H is provided but ignored. 
 	/// Provides typedef and accessor required by TR1.
 	///
+	//  使用 H1 和 H2，忽略 H
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2>
 	struct hash_code_base<Key, Value, ExtractKey, Equal, H1, H2, default_ranged_hash, false>
 	{
@@ -698,6 +711,7 @@ namespace eastl
 	/// caching hash codes. H is provided but ignored. 
 	/// Provides typedef and accessor required by TR1.
 	///
+	//  使用 H1 和 H2，忽略 H
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2>
 	struct hash_code_base<Key, Value, ExtractKey, Equal, H1, H2, default_ranged_hash, true>
 	{
@@ -772,6 +786,7 @@ namespace eastl
 	///
 	/// ExtractKey: function object that takes a object of type Value
 	/// and returns a value of type Key.
+	//  从 value 中得到 key 的方法
 	///
 	/// Equal: function object that takes two objects of type k and returns
 	/// a bool-like value that is true if the two objects are considered equal.
@@ -779,11 +794,13 @@ namespace eastl
 	/// H1: a hash function. A unary function object with argument type
 	/// Key and result type size_t. Return values should be distributed
 	/// over the entire range [0, numeric_limits<uint32_t>::max()].
+	//  H1 是个散列函数，负责将输入的 key 散列到 [0, uint32_max()]  的范围内
 	///
 	/// H2: a range-hashing function (in the terminology of Tavori and
 	/// Dreizin). This is a function which takes the output of H1 and 
 	/// converts it to the range of [0, n]. Usually it merely takes the
 	/// output of H1 and mods it to n.
+	//  H2 负责将 H1 散列到 [0, max()] 的值继续散列到 [0, n] 的范围（可能就是模除一下）
 	///
 	/// H: a ranged hash function (Tavori and Dreizin). This is merely
 	/// a class that combines the functionality of H1 and H2 together, 
@@ -793,6 +810,8 @@ namespace eastl
 	/// return value is in the range [0, n). Default: h(k, n) = h2(h1(k), n). 
 	/// If H is anything other than the default, H1 and H2 are ignored, 
 	/// as H is thus overriding H1 and H2.
+	//  H 结合了 H1 和 H2：h(k, n) = h2(h1(k), n)
+	//  如果未使用默认的 H，那么相应的忽略 H1 和 H2
 	///
 	/// RehashPolicy: Policy class with three members, all of which govern
 	/// the bucket count. nBucket(n) returns a bucket count no smaller
@@ -845,7 +864,9 @@ namespace eastl
 			  typename Equal, typename H1, typename H2, typename H, 
 			  typename RehashPolicy, bool bCacheHashCode, bool bMutableIterators, bool bUniqueKeys>
 	class hashtable
-		:   public rehash_base<RehashPolicy, hashtable<Key, Value, Allocator, ExtractKey, Equal, H1, H2, H, RehashPolicy, bCacheHashCode, bMutableIterators, bUniqueKeys> >,
+		:   public rehash_base<RehashPolicy, 
+						hashtable<Key, Value, Allocator, ExtractKey, Equal, H1, H2, H, 
+						RehashPolicy, bCacheHashCode, bMutableIterators, bUniqueKeys> >,
 			public hash_code_base<Key, Value, ExtractKey, Equal, H1, H2, H, bCacheHashCode>
 	{
 	public:

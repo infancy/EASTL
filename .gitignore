@@ -46,3 +46,4 @@ Testing/*
 /buckaroo/
 .buckconfig.local
 BUCKAROO_DEPS
+/include/EASTL/.vscode/settings.json

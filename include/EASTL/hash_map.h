@@ -98,7 +98,7 @@ namespace eastl
 	///
 	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>, 
 			  typename Allocator = EASTLAllocatorType, bool bCacheHashCode = false>
-	class hash_map
+	class hash_map	// key 作为查找的依据（不是存放的数据）， 而 value（这里为 pair<Key, T>）为存储的数据
 		: public hashtable<Key, eastl::pair<const Key, T>, Allocator, eastl::use_first<eastl::pair<const Key, T> >, Predicate,
 							Hash, mod_range_hashing, default_ranged_hash, prime_rehash_policy, bCacheHashCode, true, true>
 	{
