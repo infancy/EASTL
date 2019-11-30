@@ -80,11 +80,14 @@ int TestMap()
 
 	{
 		// C++11 emplace and related functionality
-		nErrorCount += TestMapCpp11<eastl::map<int, TestObject> >();
-
-		nErrorCount += TestMultimapCpp11<eastl::multimap<int, TestObject> >();
-
+		nErrorCount += TestMapCpp11<eastl::map<int, TestObject>>();
+		nErrorCount += TestMultimapCpp11<eastl::multimap<int, TestObject>>();
 		nErrorCount += TestMapCpp11NonCopyable<eastl::map<int, NonCopyable>>();
+	}
+
+	{
+		// C++17 try_emplace and related functionality
+		nErrorCount += TestMapCpp17<eastl::map<int, TestObject>>();
 	}
 
 
@@ -113,7 +116,7 @@ int TestMap()
 	{
 		// User reports that EASTL_VALIDATE_COMPARE_ENABLED / EASTL_COMPARE_VALIDATE isn't compiling for this case.
 		eastl::map<eastl::string8, int> m; 
-		m.find_as("some string", eastl::equal_to_2<eastl::string8, const char8_t*>()); 
+		m.find_as(EA_CHAR8("some string"), eastl::equal_to_2<eastl::string8, const char8_t*>()); 
 	}
 
 	{
@@ -151,6 +154,25 @@ int TestMap()
 		EATEST_VERIFY(map3.at(0) == 1);
 	}
 
+	// User regression test
+	{
+	#if !EASTL_RBTREE_LEGACY_SWAP_BEHAVIOUR_REQUIRES_COPY_CTOR
+		typedef eastl::map<int, MoveOnlyTypeDefaultCtor> IntMOMap;
+
+		IntMOMap m1, m2;
+		m2[0] = MoveOnlyTypeDefaultCtor(0);
+		m2[1] = MoveOnlyTypeDefaultCtor(1);
+
+		EATEST_VERIFY( m1.empty());
+		EATEST_VERIFY(!m2.empty());
+
+		m1.swap(m2);
+
+		EATEST_VERIFY(!m1.empty());
+		EATEST_VERIFY( m2.empty());
+	#endif
+	}
+
 //    todo:  create a test case for this.
 //    {	
 //      // User reports that an incorrectly wrapped pair key used to insert into an eastl map compiles when it should fire a compiler error about unconvertible types.
@@ -174,6 +196,17 @@ int TestMap()
 //        EATEST_VERIFY(p1 == p2); 
 //    }
 
+	{ // Test empty base-class optimization
+		struct UnemptyLess : eastl::less<int>
+		{
+			int foo;
+		};
+
+		typedef eastl::map<int, int, eastl::less<int>> VM1;
+		typedef eastl::map<int, int, UnemptyLess> VM2;
+
+		EATEST_VERIFY(sizeof(VM1) < sizeof(VM2));
+	}
 
 	return nErrorCount;
 }

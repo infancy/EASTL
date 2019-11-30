@@ -60,7 +60,7 @@ int TestBitVector()
 		bitvector<>::container_type         container_typeVariable;
 		bitvector<>::size_type              size_typeVariable = 0;
 
-		string8 sAddresses(string8::CtorSprintf(), "%p %p %p %p %p %p %p %p %p %p %p", 
+		string sAddresses(string::CtorSprintf(), "%p %p %p %p %p %p %p %p %p %p %p", 
 						   &this_typeVariable, &value_typeVariable, &const_referenceVariable, &iteratorVariable,
 						   &const_iteratorVariable, &reverse_iteratorVariable,&const_reverse_iteratorVariable,
 						   &allocator_typeVariable, &element_typeVariable, &container_typeVariable, &size_typeVariable);
@@ -439,9 +439,6 @@ int TestBitVector()
 
 
 		// void reset_lose_memory(); // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
-		// #if EASTL_RESET_ENABLED
-		//     void reset(); // This function name is deprecated; use reset_lose_memory instead.
-		// #endif
 
 		bv0.resize(100, true);
 		void* pSaved = MallocAllocator::mpLastAllocation;
@@ -449,15 +446,6 @@ int TestBitVector()
 		EATEST_VERIFY(bv0.validate());
 		free(pSaved); // Call the C free function.
 		MallocAllocator::mpLastAllocation = NULL;
-
-		#if EASTL_RESET_ENABLED
-			bv0.resize(100, true);
-			pSaved = MallocAllocator::mpLastAllocation;
-			bv0.reset();  // This is a deprecated function.
-			EATEST_VERIFY(bv0.validate());
-			free(pSaved); // Call the C free function.
-			MallocAllocator::mpLastAllocation = NULL;
-		#endif
 	}
 
 	return nErrorCount;
