@@ -115,8 +115,8 @@ int TestMap()
 
 	{
 		// User reports that EASTL_VALIDATE_COMPARE_ENABLED / EASTL_COMPARE_VALIDATE isn't compiling for this case.
-		eastl::map<eastl::string8, int> m; 
-		m.find_as(EA_CHAR8("some string"), eastl::equal_to_2<eastl::string8, const char8_t*>()); 
+		eastl::map<eastl::u8string, int> m; 
+		m.find_as(EA_CHAR8("some string"), eastl::equal_to_2<eastl::u8string, const char8_t*>()); 
 	}
 
 	{
@@ -206,6 +206,18 @@ int TestMap()
 		typedef eastl::map<int, int, UnemptyLess> VM2;
 
 		EATEST_VERIFY(sizeof(VM1) < sizeof(VM2));
+	}
+
+	{ // Test erase_if
+		eastl::map<int, int> m = {{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}};
+		eastl::erase_if(m, [](auto p) { return p.first % 2 == 0; });
+		VERIFY((m == eastl::map<int, int>{{1, 1},{3, 3}}));
+	}
+
+	{ // Test erase_if
+		eastl::multimap<int, int> m = {{0, 0}, {0, 0}, {0, 0}, {1, 1}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {4, 4}, {4, 4}};
+		eastl::erase_if(m, [](auto p) { return p.first % 2 == 0; });
+		VERIFY((m == eastl::multimap<int, int>{{1, 1}, {1, 1}, {3, 3}}));
 	}
 
 	return nErrorCount;
