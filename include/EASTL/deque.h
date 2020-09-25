@@ -564,6 +564,7 @@ namespace eastl
 		{
 			DoFreeSubarrays(mItBegin.mpCurrentArrayPtr, mItEnd.mpCurrentArrayPtr + 1);
 			DoFreePtrArray(mpPtrArray, mnPtrArraySize);
+			mpPtrArray = nullptr;
 		}
 	}
 
@@ -1514,11 +1515,12 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::reference
 	deque<T, Allocator, kDequeSubarraySize>::operator[](size_type n)
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED    // We allow the user to use a reference to v[0] of an empty container.
-			if(EASTL_UNLIKELY((n != 0) && n >= (size_type)(mItEnd - mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY(n >= (size_type)(mItEnd - mItBegin)))
 				EASTL_FAIL_MSG("deque::operator[] -- out of range");
 		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY(n >= (size_type)(mItEnd - mItBegin)))
+			// We allow taking a reference to deque[0]
+			if (EASTL_UNLIKELY((n != 0) && n >= (size_type)(mItEnd - mItBegin)))
 				EASTL_FAIL_MSG("deque::operator[] -- out of range");
 		#endif
 
@@ -1536,11 +1538,12 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::const_reference
 	deque<T, Allocator, kDequeSubarraySize>::operator[](size_type n) const
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED    // We allow the user to use a reference to v[0] of an empty container.
-			if(EASTL_UNLIKELY((n != 0) && n >= (size_type)(mItEnd - mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY(n >= (size_type)(mItEnd - mItBegin)))
 				EASTL_FAIL_MSG("deque::operator[] -- out of range");
 		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY(n >= (size_type)(mItEnd - mItBegin)))
+			// We allow the user to use a reference to deque[0] of an empty container.
+			if (EASTL_UNLIKELY((n != 0) && n >= (size_type)(mItEnd - mItBegin)))
 				EASTL_FAIL_MSG("deque::operator[] -- out of range");
 		#endif
 
@@ -1588,11 +1591,11 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::reference
 	deque<T, Allocator, kDequeSubarraySize>::front()
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
-			// We allow the user to reference an empty container.
-		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
 				EASTL_FAIL_MSG("deque::front -- empty deque");
+		#else
+			// We allow the user to reference an empty container.
 		#endif
 
 		return *mItBegin;
@@ -1603,11 +1606,11 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::const_reference
 	deque<T, Allocator, kDequeSubarraySize>::front() const
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
-			// We allow the user to reference an empty container.
-		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
 				EASTL_FAIL_MSG("deque::front -- empty deque");
+		#else
+			// We allow the user to reference an empty container.
 		#endif
 
 		return *mItBegin;
@@ -1618,11 +1621,11 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::reference
 	deque<T, Allocator, kDequeSubarraySize>::back()
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
-			// We allow the user to reference an empty container.
-		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
 				EASTL_FAIL_MSG("deque::back -- empty deque");
+		#else
+			// We allow the user to reference an empty container.
 		#endif
 
 		return *iterator(mItEnd, typename iterator::Decrement());
@@ -1633,11 +1636,11 @@ namespace eastl
 	typename deque<T, Allocator, kDequeSubarraySize>::const_reference
 	deque<T, Allocator, kDequeSubarraySize>::back() const
 	{
-		#if EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
-			// We allow the user to reference an empty container.
-		#elif EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
+		#if EASTL_ASSERT_ENABLED && EASTL_EMPTY_REFERENCE_ASSERT_ENABLED
+			if (EASTL_UNLIKELY((size_type)(mItEnd == mItBegin)))
 				EASTL_FAIL_MSG("deque::back -- empty deque");
+		#else
+			// We allow the user to reference an empty container.
 		#endif
 
 		return *iterator(mItEnd, typename iterator::Decrement());
