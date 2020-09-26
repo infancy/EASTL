@@ -53,6 +53,7 @@ namespace eastl
 	{
 		class unused_class {};
 
+		// 可能放置一个函数指针, 成员函数指针, void* 指针
 		union functor_storage_alignment
 		{
 			void (*unused_func_ptr)(void);
@@ -93,6 +94,7 @@ namespace eastl
 			};
 		};
 
+		// 是否足够小, 可以就地分配
 		template <typename Functor, int SIZE_IN_BYTES>
 		struct is_functor_inplace_allocatable
 		{
@@ -100,6 +102,7 @@ namespace eastl
 			    sizeof(Functor) <= sizeof(functor_storage<SIZE_IN_BYTES>) &&
 			    (eastl::alignment_of_v<functor_storage<SIZE_IN_BYTES>> % eastl::alignment_of_v<Functor>) == 0;
 		};
+
 
 
 		/// function_base_detail
@@ -121,6 +124,8 @@ namespace eastl
 				MGROPS_GET_FUNC_PTR = 4,
 			#endif
 			};
+
+
 
 			// Functor can be allocated inplace
 			template <typename Functor, typename = void>
@@ -154,6 +159,7 @@ namespace eastl
 					::new (GetFunctorPtr(to)) Functor(eastl::move(*GetFunctorPtr(from)));
 				}
 
+				// 两块地址和需要进行的操作
 				static void* Manager(void* to, void* from, typename function_base_detail::ManagerOperations ops) EA_NOEXCEPT
 				{
 					switch (ops)
@@ -290,6 +296,7 @@ namespace eastl
 					return reinterpret_cast<void*>(const_cast<std::type_info*>(&typeid(Functor)));
 				}
 
+				// 故意隐藏了基类的 Manager
 				static void* Manager(void* to, void* from, typename function_base_detail::ManagerOperations ops) EA_NOEXCEPT
 				{
 					switch (ops)
@@ -319,6 +326,8 @@ namespace eastl
 				}
 			};
 
+
+
 			function_base_detail() EA_NOEXCEPT = default;
 			~function_base_detail() EA_NOEXCEPT = default;
 		};
@@ -330,6 +339,7 @@ namespace eastl
 
 		#define EASTL_INTERNAL_FUNCTION_DETAIL_VALID_FUNCTION_ARGS(FUNCTOR, RET, ARGS, MYSELF) \
 			EASTL_INTERNAL_FUNCTION_VALID_FUNCTION_ARGS(FUNCTOR, RET, ARGS, MYSELF, MYSELF)
+
 
 
 		/// function_detail
@@ -431,6 +441,9 @@ namespace eastl
 				if(this == &other)
 					return;
 
+				// temp = other
+				// other = this
+				// this = temp
 				FunctorStorageType tempStorage;
 				if (other.HaveManager())
 				{
@@ -563,6 +576,8 @@ namespace eastl
 				}
 				else
 				{
+					// 在这里进行了类型擦除
+					// function_manager 保存了具体的 Functor, function_detail 转发所有操作给 function_manager
 					mMgrFuncPtr = &FunctionManagerType::Manager;
 					mInvokeFuncPtr = &FunctionManagerType::Invoker;
 					FunctionManagerType::CreateFunctor(mStorage, eastl::forward<Functor>(functor));

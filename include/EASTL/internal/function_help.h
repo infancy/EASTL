@@ -26,6 +26,9 @@ namespace eastl
 			return false;
 		}
 
+		// T const&
+		// * const& function_pointer
+		// (Result(Arguments...))* const& function_pointer
 		template <typename Result, typename... Arguments>
 		bool is_null(Result (*const& function_pointer)(Arguments...))
 		{

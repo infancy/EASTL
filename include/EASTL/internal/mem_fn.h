@@ -185,7 +185,7 @@ namespace eastl
 		// Due to a (seemingly random) internal compiler error on VS2013 we disable eastl::unary_function and
 		// binary_function support for eastl::mem_fn as its not widely (if at all) used.  If you require this support
 		// on VS2013 or below please contact us.
-		: public weak_result_type<T>
+		: public weak_result_type<T> // 获得 result_type, 在 C++17 中已弃用, C++20 中已删除
 #endif
 	{
 	public:

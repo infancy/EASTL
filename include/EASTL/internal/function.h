@@ -126,9 +126,13 @@ namespace eastl
 	#endif // EASTL_RTTI_ENABLED
 	};
 
+
+
 	template <typename R, typename... Args>
 	bool operator==(const function<R(Args...)>& f, std::nullptr_t) EA_NOEXCEPT
 	{
+		// if ( f) f is valid?
+		// if (!f) f is invalid?
 		return !f;
 	}
 

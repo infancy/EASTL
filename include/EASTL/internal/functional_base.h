@@ -37,6 +37,7 @@ namespace eastl
 	/// after the definition of reference_wrapper.
 	///
 	/// http://en.cppreference.com/w/cpp/utility/functional/invoke
+	/// cppreference 里的实现依赖了 C++17, 这里用 SFINAE 来实现
 	///
 	template <typename R, typename C, typename T, typename... Args>
 	auto invoke_impl(R C::*func, T&& obj, Args&&... args) ->
@@ -81,6 +82,8 @@ namespace eastl
 		return invoke_impl(eastl::forward<F>(func), eastl::forward<Args>(args)...);
 	}
 
+
+
 	template <typename F, typename = void, typename... Args>
 	struct invoke_result_impl {
 	};
@@ -99,6 +102,8 @@ namespace eastl
 		using invoke_result_t = typename invoke_result<F, Args...>::type;
 	#endif
 
+
+
 	template <typename F, typename = void, typename... Args>
 	struct is_invocable_impl : public eastl::false_type {};
 
@@ -107,6 +112,8 @@ namespace eastl
 
 	template <typename F, typename... Args>
 	struct is_invocable : public is_invocable_impl<F, void, Args...> {};
+
+
 
 	template <typename R, typename F, typename = void, typename... Args>
 	struct is_invocable_r_impl : public eastl::false_type {};
@@ -125,6 +132,8 @@ namespace eastl
 		template <typename R, typename F, typename... Args>
 		EASTL_CPP17_INLINE_VARIABLE EA_CONSTEXPR bool is_invocable_r_v = is_invocable_r<R, F, Args...>::value;
 	#endif
+
+
 
 	/// allocator_arg_t
 	///
@@ -183,6 +192,7 @@ namespace eastl
 			-> decltype(eastl::forward<A>(a) < eastl::forward<B>(b))
 			{ return eastl::forward<A>(a) < eastl::forward<B>(b); }
 	};
+
 
 
 	/// reference_wrapper
@@ -276,6 +286,7 @@ namespace eastl
 	}
 
 
+
 	// reference_wrapper-specific type traits
 	template <typename T>
 	struct is_reference_wrapper_helper
@@ -290,6 +301,7 @@ namespace eastl
 		: public eastl::is_reference_wrapper_helper<typename eastl::remove_cv<T>::type> {};
 
 
+
 	// Helper which adds a reference to a type when given a reference_wrapper of that type.
 	template <typename T>
 	struct remove_reference_wrapper
@@ -302,6 +314,8 @@ namespace eastl
 	template <typename T>
 	struct remove_reference_wrapper< const eastl::reference_wrapper<T> >
 		{ typedef T& type; };
+
+
 
 	// reference_wrapper specializations of invoke
 	// These have to come after reference_wrapper is defined, but reference_wrapper needs to have a
